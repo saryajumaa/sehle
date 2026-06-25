@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SEHLE — Galaktik Alışveriş</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;--bg2:#111111;--bg3:#1a1a1a;
+  --p:#dc2626;--pl:#ef4444;--pk:#f87171;
+  --card:rgba(26,5,5,0.7);--glow:rgba(239,68,68,0.25);
+  --txt:#f1f1f1;--mut:#9ca3af;
+  --ok:#22c55e;--err:#dc2626;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--p);border-radius:3px;}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:linear-gradient(135deg,#1a0505,#3d0a0a);
+  border:1px solid var(--p);color:var(--txt);
+  padding:13px 20px;border-radius:12px;font-size:13px;
+  box-shadow:0 0 24px rgba(220,38,38,0.35);
+  transform:translateX(120%);transition:transform .4s cubic-bezier(.17,.67,.35,1.2);
+  max-width:300px;
+}
+#toast.show{transform:translateX(0);}
+
+/* MODAL */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(10,10,10,.92);backdrop-filter:blur(6px);
+  z-index:1000;align-items:center;justify-content:center;
+}
+.modal-overlay.active{display:flex;}
+.modal{
+  background:linear-gradient(145deg,#0f0a0a,#1a0a0a);
+  border:1px solid rgba(239,68,68,.3);border-radius:20px;
+  padding:36px;width:90%;max-width:460px;
+  box-shadow:0 0 60px rgba(220,38,38,.25);position:relative;
+  animation:mIn .3s ease;max-height:90vh;overflow-y:auto;
+}
+@keyframes mIn{from{opacity:0;transform:scale(.92)translateY(16px)}to{opacity:1;transform:none}}
+.modal-close{position:absolute;top:14px;right:18px;background:none;border:none;color:var(--mut);font-size:20px;cursor:pointer;}
+.modal-close:hover{color:var(--pk);}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  height:62px;padding:0 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:rgba(10,10,10,.85);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(239,68,68,.12);
+}
+nav.scrolled{background:rgba(10,10,10,.97);}
+.nav-logo{
+  font-family:'Orbitron',sans-serif;font-weight:900;font-size:20px;
+  background:linear-gradient(90deg,#fff,#ef4444);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:3px;cursor:pointer;text-decoration:none;flex-shrink:0;
+}
+.nav-mid{display:flex;align-items:center;gap:24px;flex:1;justify-content:center;}
+.nav-mid a{
+  color:var(--mut);text-decoration:none;font-size:13px;font-weight:500;
+  letter-spacing:.4px;transition:color .2s;white-space:nowrap;
+}
+.nav-mid a:hover{color:#fff;}
+.nav-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.search-wrap{
+  display:flex;align-items:center;
+  background:rgba(220,38,38,.1);border:1px solid rgba(239,68,68,.25);
+  border-radius:28px;padding:0 12px;overflow:hidden;
+}
+.search-wrap input{
+  background:none;border:none;outline:none;color:var(--txt);
+  font-family:'Inter',sans-serif;font-size:13px;padding:7px 6px;
+  width:140px;
+}
+.search-wrap input::placeholder{color:var(--mut);}
+.search-wrap button{background:none;border:none;cursor:pointer;padding:4px;display:flex;}
+.btn-ic{
+  background:none;border:1px solid rgba(239,68,68,.25);
+  width:36px;height:36px;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;transition:all .25s;flex-shrink:0;
+}
+.btn-ic:hover{background:rgba(220,38,38,.15);border-color:var(--p);}
+.badge{
+  position:absolute;top:-4px;right:-4px;
+  background:var(--p);color:#fff;font-size:9px;
+  width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:700;
+}
+.btn-pr{
+  background:linear-gradient(135deg,var(--p),#b91c1c);
+  color:#fff;border:none;padding:8px 18px;border-radius:28px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;white-space:nowrap;transition:all .25s;
+  box-shadow:0 0 14px rgba(220,38,38,.35);
+}
+.btn-pr:hover{transform:translateY(-1px);box-shadow:0 0 22px rgba(220,38,38,.55);}
+.btn-ot{
+  background:none;color:#fff;border:1px solid var(--p);
+  padding:8px 18px;border-radius:28px;
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  cursor:pointer;white-space:nowrap;transition:all .25s;
+}
+.btn-ot:hover{background:rgba(220,38,38,.15);color:#fff;}
+/* Hamburger */
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px;}
+.hamburger span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all .3s;}
+.hamburger.open span:nth-child(1){transform:rotate(45deg)translate(5px,5px);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg)translate(5px,-5px);}
+/* Mobile nav drawer */
+.mobile-drawer{
+  position:fixed;top:62px;left:0;right:0;z-index:490;
+  background:rgba(10,10,10,.97);border-bottom:1px solid rgba(239,68,68,.15);
+  padding:16px 24px;display:none;flex-direction:column;gap:4px;
+}
+.mobile-drawer.open{display:flex;}
+.mobile-drawer a{
+  padding:12px 0;color:var(--mut);text-decoration:none;font-size:15px;font-weight:500;
+  border-bottom:1px solid rgba(239,68,68,.08);transition:color .2s;
+}
+.mobile-drawer a:hover{color:#fff;}
+
+/* SEARCH DROPDOWN */
+#srDrop{
+  display:none;position:fixed;top:62px;left:50%;transform:translateX(-50%);
+  width:min(560px,92vw);z-index:600;
+  background:linear-gradient(145deg,#0f0a0a,#1a0a0a);
+  border:1px solid rgba(239,68,68,.25);border-radius:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden;
+}
+.sr-item{
+  padding:13px 18px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:background .2s;border-bottom:1px solid rgba(239,68,68,.07);
+}
+.sr-item:hover{background:rgba(220,38,38,.12);}
+.sr-item:last-child{border-bottom:none;}
+.sr-ico{width:40px;height:40px;flex-shrink:0;}
+.sr-name{font-size:14px;font-weight:500;}
+.sr-price{font-size:12px;color:var(--p);}
+
+/* CANVAS */
+#starCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+
+/* HERO */
+#hero{
+  position:relative;z-index:1;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:80px 24px 40px;text-align:center;
+}
+.hero-nebula{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%,rgba(220,38,38,.15) 0%,transparent 70%),
+    radial-gradient(ellipse 40% 30% at 18% 70%,rgba(239,68,68,.08) 0%,transparent 60%),
+    radial-gradient(ellipse 30% 40% at 82% 18%,rgba(248,113,113,.06) 0%,transparent 60%);
+}
+.hero-content{position:relative;z-index:2;max-width:760px;width:100%;}
+.hero-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(220,38,38,.12);border:1px solid rgba(239,68,68,.25);
+  border-radius:28px;padding:6px 16px;
+  font-size:11px;color:#fff;letter-spacing:2px;font-weight:600;
+  text-transform:uppercase;margin-bottom:26px;
+}
+.pulse{width:7px;height:7px;background:var(--pk);border-radius:50%;animation:pu 2s infinite;}
+@keyframes pu{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
+.hero-h1{
+  font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:clamp(38px,7vw,82px);line-height:1.06;margin-bottom:20px;
+}
+.hero-h1 .l1{display:block;color:var(--txt);}
+.hero-h1 .l2{
+  display:block;
+  background:linear-gradient(90deg,#fff,#ef4444,#fff);
+  background-size:200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:sh 4s linear infinite;
+}
+@keyframes sh{0%{background-position:0%}100%{background-position:200%}}
+.hero-sub{font-size:16px;color:var(--mut);line-height:1.7;max-width:520px;margin:0 auto 34px;}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.btn-hero{
+  padding:13px 32px;border-radius:40px;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .3s;letter-spacing:.4px;
+}
+.bh-pr{background:linear-gradient(135deg,var(--p),#b91c1c);color:#fff;border:none;box-shadow:0 0 28px rgba(220,38,38,.45);}
+.bh-pr:hover{transform:translateY(-2px);box-shadow:0 0 44px rgba(220,38,38,.65);}
+.bh-sc{background:rgba(255,255,255,.04);color:var(--txt);border:1px solid rgba(239,68,68,.33);}
+.bh-sc:hover{background:rgba(220,38,38,.14);border-color:var(--p);}
+.hero-stats{
+  display:flex;gap:32px;justify-content:center;flex-wrap:wrap;
+  margin-top:52px;padding-top:36px;border-top:1px solid rgba(239,68,68,.12);
+}
+.hs-val{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:700;
+  background:linear-gradient(135deg,#fff,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hs-lbl{font-size:11px;color:var(--mut);letter-spacing:1px;margin-top:3px;}
+
+/* SECTION */
+section{position:relative;z-index:1;padding:80px 0;}
+.container{max-width:1180px;margin:0 auto;padding:0 20px;}
+.s-eye{font-size:11px;color:var(--p);letter-spacing:3px;font-weight:700;text-transform:uppercase;margin-bottom:8px;}
+.s-title{font-family:'Orbitron',sans-serif;font-size:clamp(24px,3.5vw,38px);font-weight:700;margin-bottom:12px;}
+.s-desc{font-size:14px;color:var(--mut);line-height:1.7;}
+
+/* CATEGORIES */
+#categories{padding:60px 0;}
+.cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;margin-top:38px;}
+.cat-card{
+  background:var(--card);border:1px solid rgba(239,68,68,.2);
+  border-radius:16px;padding:22px 14px;text-align:center;cursor:pointer;
+  transition:all .3s;
+}
+.cat-card:hover,.cat-card.active{
+  transform:translateY(-4px);border-color:var(--p);
+  box-shadow:0 0 26px rgba(220,38,38,.2);
+  background:rgba(220,38,38,.12);
+}
+.cat-card svg{width:40px;height:40px;margin:0 auto 10px;display:block;}
+.cat-name{font-size:12px;font-weight:600;color:var(--txt);}
+.cat-count{font-size:10px;color:var(--mut);margin-top:3px;}
+
+/* PRODUCTS */
+.ph{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:38px;}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+.f-btn{
+  background:rgba(220,38,38,.07);border:1px solid rgba(239,68,68,.2);
+  color:var(--mut);padding:7px 16px;border-radius:28px;
+  font-size:12px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;
+}
+.f-btn:hover,.f-btn.active{background:rgba(220,38,38,.18);border-color:var(--p);color:#fff;}
+.sort-sel{
+  background:rgba(220,38,38,.1);border:1px solid rgba(239,68,68,.2);
+  color:var(--txt);padding:8px 14px;border-radius:28px;
+  font-family:'Inter',sans-serif;font-size:12px;outline:none;cursor:pointer;
+}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;}
+.pcard{
+  background:var(--card);border:1px solid rgba(239,68,68,.2);
+  border-radius:18px;overflow:hidden;cursor:pointer;
+  transition:all .35s;backdrop-filter:blur(8px);
+}
+.pcard:hover{transform:translateY(-6px);border-color:var(--p);box-shadow:0 18px 50px rgba(220,38,38,.15);}
+.pimg{
+  height:200px;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(220,38,38,.1),rgba(239,68,68,.06));
+}
+.pimg svg{width:100px;height:100px;transition:transform .4s;}
+.pcard:hover .pimg svg{transform:scale(1.12) rotate(4deg);}
+.pbadge{
+  position:absolute;top:10px;left:10px;font-size:9px;font-weight:700;
+  padding:3px 8px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;
+}
+.b-new{background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.35);color:#86efac;}
+.b-hot{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.35);color:#fca5a5;}
+.b-sale{background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.35);color:#fcd34d;}
+.pwish{
+  position:absolute;top:10px;right:10px;
+  background:rgba(10,10,10,.55);border:1px solid rgba(239,68,68,.2);
+  border-radius:50%;width:32px;height:32px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;transition:all .25s;
+}
+.pwish:hover,.pwish.on{border-color:var(--p);}
+.pwish svg{width:16px;height:16px;}
+.pinfo{padding:16px;}
+.pcat{font-size:10px;color:var(--p);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.pname{font-size:15px;font-weight:600;margin-bottom:7px;line-height:1.3;}
+.pstars{color:#f59e0b;font-size:11px;margin-bottom:9px;}
+.pstars span{color:var(--mut);margin-left:3px;font-size:11px;}
+.pbot{display:flex;align-items:center;justify-content:space-between;}
+.pprice{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:#fff;}
+.pold{font-size:11px;color:var(--mut);text-decoration:line-through;margin-left:5px;}
+.btn-add{
+  background:linear-gradient(135deg,var(--p),#b91c1c);
+  border:none;color:#fff;width:34px;height:34px;border-radius:50%;
+  font-size:18px;cursor:pointer;transition:all .25s;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 12px rgba(220,38,38,.35);
+}
+.btn-add:hover{transform:scale(1.12);box-shadow:0 0 22px rgba(220,38,38,.55);}
+
+/* CART PANEL */
+.cpanel{
+  position:fixed;top:0;right:-420px;width:min(420px,100vw);height:100vh;z-index:900;
+  background:linear-gradient(180deg,#0a0a0a,#141414);
+  border-left:1px solid rgba(239,68,68,.2);display:flex;flex-direction:column;
+  transition:right .4s cubic-bezier(.17,.67,.35,1.05);
+  box-shadow:-18px 0 50px rgba(0,0,0,.5);
+}
+.cpanel.open{right:0;}
+.wp{
+  position:fixed;top:0;left:-400px;width:min(400px,100vw);height:100vh;z-index:900;
+  background:linear-gradient(180deg,#0a0a0a,#141414);
+  border-right:1px solid rgba(239,68,68,.2);display:flex;flex-direction:column;
+  transition:left .4s cubic-bezier(.17,.67,.35,1.05);
+  box-shadow:18px 0 50px rgba(0,0,0,.5);
+}
+.wp.open{left:0;}
+.panel-h{
+  padding:20px;border-bottom:1px solid rgba(239,68,68,.12);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel-h h2{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;}
+.panel-close{background:none;border:none;color:var(--mut);font-size:20px;cursor:pointer;}
+.panel-close:hover{color:var(--pk);}
+.panel-body{flex:1;overflow-y:auto;padding:18px;}
+.c-item{
+  display:flex;gap:12px;align-items:center;
+  padding:12px;background:rgba(26,5,5,.5);border:1px solid rgba(239,68,68,.2);
+  border-radius:12px;margin-bottom:10px;
+}
+.c-item-ico{width:44px;height:44px;flex-shrink:0;}
+.ci-name{font-size:13px;font-weight:500;margin-bottom:3px;}
+.ci-price{font-size:12px;color:var(--p);font-weight:600;}
+.qty-row{display:flex;align-items:center;gap:8px;margin-top:7px;}
+.qb{
+  background:rgba(220,38,38,.15);border:1px solid rgba(239,68,68,.2);
+  color:var(--txt);width:24px;height:24px;border-radius:50%;cursor:pointer;
+  font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.qb:hover{background:rgba(220,38,38,.35);}
+.qv{font-size:12px;font-weight:600;min-width:16px;text-align:center;}
+.del-btn{background:none;border:none;color:var(--mut);cursor:pointer;padding:3px;margin-left:auto;}
+.del-btn:hover{color:var(--err);}
+.cart-empty{text-align:center;padding:50px 16px;color:var(--mut);font-size:13px;}
+.cart-empty svg{width:56px;height:56px;margin:0 auto 12px;display:block;opacity:.4;}
+.panel-f{padding:20px;border-top:1px solid rgba(239,68,68,.12);}
+.c-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.c-total span:first-child{color:var(--mut);font-size:13px;}
+.c-total span:last-child{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:#fff;}
+.coupon-row{display:flex;gap:8px;margin-bottom:10px;}
+.coupon-inp{flex:1;padding:9px 13px;background:rgba(220,38,38,.08);border:1px solid rgba(239,68,68,.2);border-radius:28px;color:var(--txt);font-family:'Inter',sans-serif;font-size:12px;outline:none;}
+.coupon-inp:focus{border-color:var(--p);}
+.btn-checkout{
+  width:100%;padding:13px;
+  background:linear-gradient(135deg,var(--p),#b91c1c);
+  border:none;color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:2px;border-radius:12px;cursor:pointer;transition:all .3s;
+  box-shadow:0 0 26px rgba(220,38,38,.35);
+}
+.btn-checkout:hover{transform:translateY(-1px);box-shadow:0 0 40px rgba(220,38,38,.55);}
+
+/* FEATURED */
+.feat{
+  background:linear-gradient(135deg,rgba(220,38,38,.15),rgba(239,68,68,.06),rgba(248,113,113,.03));
+  border:1px solid rgba(239,68,68,.2);border-radius:22px;
+  padding:50px 42px;display:flex;align-items:center;gap:44px;
+  position:relative;overflow:hidden;
+}
+.feat::before{
+  content:'';position:absolute;top:-40%;right:-8%;
+  width:360px;height:360px;border-radius:50%;
+  background:radial-gradient(circle,rgba(239,68,68,.1),transparent 70%);pointer-events:none;
+}
+.feat-txt{flex:1;position:relative;z-index:1;}
+.feat-txt h2{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;margin-bottom:12px;line-height:1.2;}
+.feat-txt p{font-size:14px;color:var(--mut);margin-bottom:22px;max-width:380px;}
+.feat-ctas{display:flex;gap:10px;flex-wrap:wrap;}
+.feat-vis{position:relative;z-index:1;flex-shrink:0;}
+.feat-vis svg{width:120px;height:120px;}
+
+/* TESTIMONIALS */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-top:38px;}
+.tcard{
+  background:var(--card);border:1px solid rgba(239,68,68,.2);
+  border-radius:16px;padding:22px;transition:all .3s;
+}
+.tcard:hover{transform:translateY(-3px);border-color:rgba(239,68,68,.45);}
+.tstars{color:#f59e0b;margin-bottom:10px;font-size:13px;}
+.ttxt{font-size:13px;color:var(--mut);line-height:1.7;margin-bottom:16px;}
+.tauth{display:flex;align-items:center;gap:10px;}
+.tav{width:38px;height:38px;border-radius:50%;flex-shrink:0;}
+.tname{font-size:12px;font-weight:600;}
+.than{font-size:11px;color:var(--mut);}
+
+/* NEWSLETTER */
+#newsletter{background:linear-gradient(135deg,rgba(220,38,38,.08),rgba(26,5,5,.5));border-top:1px solid rgba(239,68,68,.2);border-bottom:1px solid rgba(239,68,68,.2);padding:60px 0;}
+.nl-inner{text-align:center;max-width:480px;margin:0 auto;}
+.nl-inner h2{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:700;margin-bottom:10px;}
+.nl-inner p{color:var(--mut);margin-bottom:24px;font-size:14px;}
+.nl-form{display:flex;gap:8px;max-width:400px;margin:0 auto;}
+.nl-inp{flex:1;padding:12px 16px;background:rgba(220,38,38,.08);border:1px solid rgba(239,68,68,.2);border-radius:38px;color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;outline:none;}
+.nl-inp:focus{border-color:var(--p);}
+.nl-inp::placeholder{color:rgba(156,163,175,.45);}
+
+/* FOOTER */
+footer{padding:56px 0 26px;background:linear-gradient(0deg,rgba(10,10,10,.9),transparent);}
+.fgrid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:36px;margin-bottom:44px;}
+.fbrand p{font-size:13px;color:var(--mut);line-height:1.7;max-width:240px;margin-top:12px;}
+.fsocial{display:flex;gap:8px;margin-top:16px;}
+.fsoc{
+  width:34px;height:34px;border-radius:50%;
+  background:rgba(220,38,38,.1);border:1px solid rgba(239,68,68,.2);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  font-size:14px;transition:all .25s;text-decoration:none;color:var(--mut);
+}
+.fsoc:hover{background:rgba(220,38,38,.2);border-color:var(--p);color:#fff;}
+.fcol h4{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;color:#fff;}
+.fcol ul{list-style:none;}
+.fcol li{margin-bottom:9px;}
+.fcol a{font-size:13px;color:var(--mut);text-decoration:none;transition:color .2s;}
+.fcol a:hover{color:#fff;}
+.fbot{border-top:1px solid rgba(239,68,68,.1);padding-top:22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mut);}
+
+/* BACK TOP */
+#bk{
+  position:fixed;bottom:80px;right:24px;z-index:400;
+  width:40px;height:40px;background:rgba(220,38,38,.25);
+  border:1px solid rgba(239,68,68,.2);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .3s;opacity:0;pointer-events:none;
+}
+#bk.vis{opacity:1;pointer-events:all;}
+#bk:hover{background:rgba(220,38,38,.45);transform:translateY(-2px);}
+#bk svg{width:18px;height:18px;}
+
+/* AUTH */
+.atabs{display:flex;margin-bottom:24px;border-bottom:1px solid rgba(239,68,68,.14);}
+.atab{flex:1;padding:11px;background:none;border:none;color:var(--mut);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.atab.on{color:#fff;border-bottom-color:var(--p);}
+.fg{margin-bottom:16px;}
+.fl{display:block;font-size:11px;color:var(--mut);margin-bottom:5px;letter-spacing:.4px;font-weight:500;}
+.fi{width:100%;padding:11px 14px;background:rgba(220,38,38,.08);border:1px solid rgba(239,68,68,.2);border-radius:9px;color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.fi:focus{border-color:var(--p);box-shadow:0 0 10px rgba(220,38,38,.15);}
+.fi::placeholder{color:rgba(156,163,175,.45);}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-full{width:100%;padding:12px;background:linear-gradient(135deg,var(--p),#b91c1c);border:none;color:#fff;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;border-radius:9px;cursor:pointer;transition:all .3s;box-shadow:0 0 18px rgba(220,38,38,.25);margin-top:4px;}
+.btn-full:hover{transform:translateY(-1px);box-shadow:0 0 28px rgba(220,38,38,.45);}
+.ffoot{text-align:center;margin-top:14px;font-size:12px;color:var(--mut);}
+.ffoot a{color:var(--p);text-decoration:none;}
+
+/* PRODUCT DETAIL */
+.pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.pd-vis{background:linear-gradient(135deg,rgba(220,38,38,.1),rgba(239,68,68,.05));border-radius:14px;display:flex;align-items:center;justify-content:center;padding:28px;}
+.pd-vis svg{width:120px;height:120px;}
+.pd-t{font-size:20px;font-weight:700;margin-bottom:7px;line-height:1.3;}
+.pd-st{color:#f59e0b;font-size:12px;margin-bottom:12px;}
+.pd-desc{font-size:13px;color:var(--mut);line-height:1.7;margin-bottom:14px;}
+.pd-pw{display:flex;align-items:baseline;gap:8px;margin-bottom:18px;}
+.pd-price{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:700;color:#fff;}
+.pd-old{font-size:14px;color:var(--mut);text-decoration:line-through;}
+.pd-qty.pd-qty{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.pdqb{background:rgba(220,38,38,.14);border:1px solid rgba(239,68,68,.2);color:var(--txt);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.pdqv{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;min-width:22px;text-align:center;}
+.pd-feat{font-size:11px;color:var(--mut);margin-top:8px;}
+.pd-feat span{color:var(--ok);}
+
+/* CHECKOUT */
+.co-steps{display:flex;gap:0;margin-bottom:24px;}
+.co-step{flex:1;text-align:center;font-size:10px;font-weight:600;letter-spacing:.8px;color:var(--mut);position:relative;}
+.co-step.on{color:#fff;}
+.co-step::after{content:'';position:absolute;top:11px;right:-50%;width:100%;height:1px;background:rgba(239,68,68,.2);z-index:-1;}
+.co-step:last-child::after{display:none;}
+.sdot{width:22px;height:22px;border-radius:50%;border:2px solid rgba(239,68,68,.2);background:var(--bg2);margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;}
+.co-step.on .sdot{border-color:var(--p);background:rgba(220,38,38,.15);color:#fff;}
+.co-step.done .sdot{background:var(--p);border-color:var(--p);color:#fff;}
+.osum{background:rgba(220,38,38,.05);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:14px;margin-bottom:16px;}
+.orow{display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px;color:var(--mut);}
+.orow:last-child{border-top:1px solid rgba(239,68,68,.2);padding-top:9px;margin-top:9px;color:var(--txt);font-weight:600;}
+
+/* SUCCESS */
+.suc-ov{position:fixed;inset:0;z-index:2000;background:rgba(10,10,10,.94);display:none;align-items:center;justify-content:center;}
+.suc-ov.show{display:flex;}
+.suc-box{text-align:center;}
+.suc-box svg{width:100px;height:100px;margin:0 auto 18px;display:block;animation:bIn .6s ease;}
+@keyframes bIn{0%{transform:scale(0)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+.suc-box h2{font-family:'Orbitron',sans-serif;font-size:22px;margin-bottom:8px;}
+.suc-box p{color:var(--mut);font-size:14px;}
+
+/* USER DROPDOWN */
+.udrop{
+  position:absolute;top:48px;right:0;
+  background:linear-gradient(145deg,#0f0a0a,#1a0a0a);
+  border:1px solid rgba(239,68,68,.2);border-radius:12px;
+  min-width:170px;padding:6px 0;z-index:600;
+  box-shadow:0 18px 45px rgba(0,0,0,.5);display:none;
+}
+.udrop.sh{display:block;animation:fdwn .2s ease;}
+@keyframes fdwn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+.udrop a{display:block;padding:9px 16px;font-size:12px;color:var(--mut);text-decoration:none;transition:all .15s;cursor:pointer;}
+.udrop a:hover{background:rgba(220,38,38,.1);color:#fff;}
+.udrop hr{border:none;border-top:1px solid rgba(239,68,68,.1);margin:5px 0;}
+.uwrap{position:relative;}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  .nav-mid{display:none;}
+  .hamburger{display:flex;}
+  .fgrid{grid-template-columns:1fr 1fr;}
+  .pd-grid{grid-template-columns:1fr;}
+  .feat{flex-direction:column;text-align:center;padding:36px 28px;}
+  .feat-txt p{max-width:100%;}
+}
+@media(max-width:600px){
+  .search-wrap{display:none;}
+  .fgrid{grid-template-columns:1fr;}
+  .hero-stats{gap:18px;}
+  .cats-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
+  .pgrid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+  .nl-form{flex-direction:column;}
+  .fr{grid-template-columns:1fr;}
+  section{padding:60px 0;}
+  .feat-vis svg{width:80px;height:80px;}
+}
+@media(max-width:380px){
+  .pgrid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="starCanvas"></canvas>
+<div id="toast"></div>
+<div id="bk" onclick="scrollTo({top:0,behavior:'smooth'})">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</div>
+
+<!-- SUCCESS -->
+<div class="suc-ov" id="sucOv">
+  <div class="suc-box">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="rg" cx="50%" cy="40%" r="55%">
+          <stop offset="0%" stop-color="#f87171"/>
+          <stop offset="100%" stop-color="#dc2626"/>
+        </radialGradient>
+        <radialGradient id="fg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fbbf24"/>
+          <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="50" cy="85" rx="10" ry="14" fill="#f59e0b" opacity=".6"/>
+      <ellipse cx="50" cy="83" rx="6" ry="9" fill="#fcd34d"/>
+      <path d="M50 10 C35 20 30 45 30 60 L70 60 C70 45 65 20 50 10Z" fill="url(#rg)"/>
+      <path d="M50 10 C45 15 43 22 43 28 L57 28 C57 22 55 15 50 10Z" fill="#f87171"/>
+      <path d="M30 60 L18 75 L30 70Z" fill="#b91c1c"/>
+      <path d="M70 60 L82 75 L70 70Z" fill="#b91c1c"/>
+      <circle cx="50" cy="45" r="9" fill="#0a0a0a" stroke="#ef4444" stroke-width="2"/>
+      <circle cx="50" cy="45" r="5" fill="#1a0a0a"/>
+      <circle cx="48" cy="43" r="2" fill="#f87171" opacity=".7"/>
+      <circle cx="20" cy="30" r="1.5" fill="#f87171"/>
+      <circle cx="78" cy="25" r="1.5" fill="#f87171"/>
+      <circle cx="15" cy="50" r="1" fill="#ef4444"/>
+      <circle cx="83" cy="48" r="1" fill="#ef4444"/>
+    </svg>
+    <h2>Siparişin Yola Çıktı!</h2>
+    <p>Galaksinin derinliklerinden kapına ulaşacak. 🌌</p>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a class="nav-logo" href="#hero">SEHLE</a>
+  <div class="nav-mid">
+    <a href="#products">Ürünler</a>
+    <a href="#categories">Kategoriler</a>
+    <a href="#featured">Öne Çıkan</a>
+    <a href="#testimonials">Yorumlar</a>
+  </div>
+  <div class="nav-right">
+    <div class="search-wrap">
+      <input type="text" placeholder="Galakside ara…" id="srInp" oninput="doSearch(this.value)">
+      <button onclick="doSearch(document.getElementById('srInp').value)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+    </div>
+    <div class="uwrap">
+      <button class="btn-ic" id="uBtn" onclick="toggleUMenu()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+      <div class="udrop" id="uDrop"><div id="uMenuC"></div></div>
+    </div>
+    <button class="btn-ic" onclick="toggleWish()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <div class="badge" id="wBadge" style="display:none">0</div>
+    </button>
+    <button class="btn-ic" onclick="toggleCart()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <div class="badge" id="cBadge">0</div>
+    </button>
+    <button class="hamburger" id="hmb" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Mobile Drawer -->
+<div class="mobile-drawer" id="mDrawer">
+  <a href="#products" onclick="closeDrawer()">Ürünler</a>
+  <a href="#categories" onclick="closeDrawer()">Kategoriler</a>
+  <a href="#featured" onclick="closeDrawer()">Öne Çıkan</a>
+  <a href="#testimonials" onclick="closeDrawer()">Yorumlar</a>
+  <div style="padding:12px 0;display:flex;gap:8px;">
+    <input type="text" placeholder="Ara…" id="srInpM" oninput="doSearch(this.value)" style="flex:1;padding:9px 12px;background:rgba(220,38,38,.08);border:1px solid rgba(239,68,68,.2);border-radius:28px;color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;outline:none;">
+  </div>
+</div>
+
+<!-- Search dropdown -->
+<div id="srDrop">
+  <div id="srList"></div>
+  <div style="padding:10px 18px;text-align:center;font-size:12px;color:var(--mut);cursor:pointer;" onclick="closeSr()">Kapat ✕</div>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-nebula"></div>
+  <div class="hero-content">
+    <div class="hero-pill"><span class="pulse"></span>Evrenin En İyi Mağazası</div>
+    <h1 class="hero-h1">
+      <span class="l1">Galakside</span>
+      <span class="l2">Alışveriş</span>
+    </h1>
+    <p class="hero-sub">Yıldızların ötesinden getirilen benzersiz ürünler. Sehle ile evreni keşfet, istediğini kapına getir.</p>
+    <div class="hero-cta">
+      <button class="btn-hero bh-pr" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">Alışverişe Başla</button>
+      <button class="btn-hero bh-sc" onclick="openAuth()">Ücretsiz Kaydol</button>
+    </div>
+    <div class="hero-stats">
+      <div><div class="hs-val">48K+</div><div class="hs-lbl">Ürün</div></div>
+      <div><div class="hs-val">120K+</div><div class="hs-lbl">Mutlu Müşteri</div></div>
+      <div><div class="hs-val">4.9★</div><div class="hs-lbl">Ortalama Puan</div></div>
+      <div><div class="hs-val">24/7</div><div class="hs-lbl">Destek</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section id="categories">
+  <div class="container">
+    <div class="s-eye">Kategoriler</div>
+    <h2 class="s-title">Nereye Seyahat Edeceksin?</h2>
+    <div class="cats-grid" id="catsGrid"></div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products" style="background:linear-gradient(180deg,transparent,rgba(26,5,5,.25),transparent)">
+  <div class="container">
+    <div class="ph">
+      <div>
+        <div class="s-eye">Ürünler</div>
+        <h2 class="s-title">Galaktik Koleksiyon</h2>
+      </div>
+      <select class="sort-sel" id="sortSel" onchange="sortP()">
+        <option value="def">Varsayılan</option>
+        <option value="asc">Fiyat ↑</option>
+        <option value="desc">Fiyat ↓</option>
+        <option value="rat">En Beğenilen</option>
+      </select>
+    </div>
+    <div class="filters" id="filtsBar"></div>
+    <div class="pgrid" id="pgrid"></div>
+    <div style="text-align:center;margin-top:36px;" id="lmWrap">
+      <button class="btn-ot" onclick="loadMore()">Daha Fazla Yükle ✦</button>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED -->
+<section id="featured" style="padding:60px 0;">
+  <div class="container">
+    <div class="feat">
+      <div class="feat-txt">
+        <div class="s-eye">Öne Çıkan</div>
+        <h2>Nebula Pro<br>Kulaklık Serisi</h2>
+        <p>Uzay kalitesinde ses deneyimi. Aktif gürültü engelleme ve 40 saat pil ömrüyle galaksinin sesini hisset.</p>
+        <div class="feat-ctas">
+          <button class="btn-hero bh-pr" onclick="addToCart({id:99,name:'Nebula Pro Kulaklık',price:2499,catName:'Teknoloji',svgKey:'headphones'})">Sepete Ekle — ₺2.499</button>
+          <button class="btn-hero bh-sc">İncele →</button>
+        </div>
+      </div>
+      <div class="feat-vis" id="featVis"></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="container">
+    <div style="text-align:center;">
+      <div class="s-eye" style="text-align:center;">Müşteri Yorumları</div>
+      <h2 class="s-title">Galaksi Sakinleri Ne Diyor?</h2>
+    </div>
+    <div class="tgrid" id="tgrid"></div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section id="newsletter">
+  <div class="container">
+    <div class="nl-inner">
+      <div class="s-eye" style="text-align:center;">Bülten</div>
+      <h2>Galaktik Fırsatları<br>Kaçırma!</h2>
+      <p>Haftalık kampanyalar ve özel indirimler için kaydol.</p>
+      <div class="nl-form">
+        <input type="email" class="nl-inp" placeholder="uzay@sehle.com" id="nlEmail">
+        <button class="btn-pr" onclick="subNL()">Kaydol ✦</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="fgrid">
+      <div class="fbrand">
+        <a class="nav-logo" href="#hero">SEHLE</a>
+        <p>Galaksinin en büyük alışveriş destinasyonu. Yıldızların ötesinden sana özel ürünler.</p>
+        <div class="fsocial">
+          <a class="fsoc" href="#">𝕏</a>
+          <a class="fsoc" href="https://instagram.com/shl.ozgrr" target="_blank">📸</a>
+          <a class="fsoc" href="#">▶</a>
+          <a class="fsoc" href="#">💼</a>
+        </div>
+      </div>
+      <div class="fcol">
+        <h4>Keşfet</h4>
+        <ul>
+          <li><a href="#">Yeni Gelenler</a></li>
+          <li><a href="#">Çok Satanlar</a></li>
+          <li><a href="#">İndirimler</a></li>
+          <li><a href="#">Koleksiyonlar</a></li>
+        </ul>
+      </div>
+      <div class="fcol">
+        <h4>Hesabım</h4>
+        <ul>
+          <li><a href="#" onclick="openAuth()">Giriş Yap</a></li>
+          <li><a href="#" onclick="openAuth()">Kayıt Ol</a></li>
+          <li><a href="#">Siparişlerim</a></li>
+          <li><a href="#">Adreslerim</a></li>
+        </ul>
+      </div>
+      <div class="fcol">
+        <h4>Yardım</h4>
+        <ul>
+          <li><a href="#">S.S.S.</a></li>
+          <li><a href="#">Kargo Takip</a></li>
+          <li><a href="#">İade & Değişim</a></li>
+          <li><a href="#">İletişim</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fbot">
+      <span>© 2026 SEHLE. Tüm hakları saklıdır.</span>
+      <span>🌌 Galakside üretildi</span>
+    </div>
+  </div>
+</footer>
+
+<!-- CART -->
+<div class="cpanel" id="cartP">
+  <div class="panel-h">
+    <h2>Sepetim</h2>
+    <button class="panel-close" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="panel-body" id="cartItems"></div>
+  <div class="panel-f">
+    <div class="c-total"><span>Toplam</span><span id="cTotal">₺0</span></div>
+    <div class="coupon-row">
+      <input type="text" class="coupon-inp" placeholder="Kupon kodu" id="cupInp">
+      <button class="btn-ot" onclick="applyCoupon()" style="padding:9px 13px;font-size:12px;">Uygula</button>
+    </div>
+    <button class="btn-checkout" onclick="openCheckout()">SATIN AL ✦</button>
+  </div>
+</div>
+
+<!-- WISHLIST -->
+<div class="wp" id="wishP">
+  <div class="panel-h">
+    <h2>İstek Listem</h2>
+    <button class="panel-close" onclick="toggleWish()">✕</button>
+  </div>
+  <div class="panel-body" id="wishItems"></div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authMod">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuth()">✕</button>
+    <div style="text-align:center;margin-bottom:20px;">
+      <span style="font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;background:linear-gradient(90deg,#fff,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">SEHLE</span>
+    </div>
+    <div class="atabs">
+      <button class="atab on" id="ltab" onclick="switchTab('l')">Giriş Yap</button>
+      <button class="atab" id="rtab" onclick="switchTab('r')">Kayıt Ol</button>
+    </div>
+    <div id="lform">
+      <div class="fg"><label class="fl">E-posta</label><input type="email" class="fi" placeholder="galaksi@sehle.com" id="lEmail"></div>
+      <div class="fg"><label class="fl">Şifre</label><input type="password" class="fi" placeholder="••••••••" id="lPass"></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:14px;">
+        <label style="display:flex;align-items:center;gap:5px;color:var(--mut);cursor:pointer;"><input type="checkbox" style="accent-color:var(--p)"> Beni Hatırla</label>
+        <a href="#" style="color:var(--p);text-decoration:none;">Şifremi Unuttum?</a>
+      </div>
+      <button class="btn-full" onclick="doLogin()">GİRİŞ YAP</button>
+      <div class="ffoot">Hesabın yok mu? <a href="#" onclick="switchTab('r')">Kayıt Ol</a></div>
+    </div>
+    <div id="rform" style="display:none;">
+      <div class="fr">
+        <div class="fg"><label class="fl">Ad</label><input type="text" class="fi" placeholder="Yıldız" id="rName"></div>
+        <div class="fg"><label class="fl">Soyad</label><input type="text" class="fi" placeholder="Karademir" id="rSur"></div>
+      </div>
+      <div class="fg"><label class="fl">E-posta</label><input type="email" class="fi" placeholder="galaksi@sehle.com" id="rEmail"></div>
+      <div class="fg"><label class="fl">Telefon</label><input type="tel" class="fi" placeholder="+90 5XX XXX XX XX" id="rPhone"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Şifre</label><input type="password" class="fi" placeholder="••••••••" id="rPass"></div>
+        <div class="fg"><label class="fl">Tekrar</label><input type="password" class="fi" placeholder="••••••••" id="rPass2"></div>
+      </div>
+      <label style="display:flex;align-items:flex-start;gap:7px;font-size:11px;color:var(--mut);margin-bottom:14px;cursor:pointer;">
+        <input type="checkbox" id="rAgree" style="accent-color:var(--p);margin-top:2px;">
+        <span><a href="#" style="color:var(--p);">Kullanıcı Sözleşmesi</a>'ni kabul ediyorum.</span>
+      </label>
+      <button class="btn-full" onclick="doRegister()">HESAP OLUŞTUR</button>
+      <div class="ffoot">Zaten hesabın var mı? <a href="#" onclick="switchTab('l')">Giriş Yap</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT DETAIL -->
+<div class="modal-overlay" id="pdMod">
+  <div class="modal" style="max-width:660px;width:95%;">
+    <button class="modal-close" onclick="document.getElementById('pdMod').classList.remove('active')">✕</button>
+    <div id="pdC"></div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="coMod">
+  <div class="modal" style="max-width:520px;width:95%;">
+    <button class="modal-close" onclick="document.getElementById('coMod').classList.remove('active')">✕</button>
+    <div style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;margin-bottom:20px;">Sipariş Ver</div>
+    <div class="co-steps" id="coSteps"></div>
+    <div id="coC"></div>
+  </div>
+</div>
+
+<script>
+// ── SVG ICONS LIBRARY ──
+const SVGS = {
+  phone:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <rect x="22" y="8" width="56" height="84" rx="10" fill="url(#pg)"/>
+    <rect x="26" y="14" width="48" height="68" rx="6" fill="#0a0a0a"/>
+    <rect x="30" y="18" width="40" height="58" rx="4" fill="#141414"/>
+    <rect x="32" y="20" width="36" height="54" rx="3" fill="none" stroke="#ef4444" stroke-width="0.5" stroke-opacity="0.5"/>
+    <rect x="40" y="10" width="20" height="5" rx="2.5" fill="#0a0a0a"/>
+    <circle cx="50" cy="12.5" r="1.5" fill="#ef4444"/>
+    <rect x="40" y="87" width="20" height="3" rx="1.5" fill="#ef4444" opacity=".5"/>
+    <rect x="35" y="28" width="10" height="10" rx="2.5" fill="#dc2626"/>
+    <rect x="48" y="28" width="10" height="10" rx="2.5" fill="#b91c1c"/>
+    <rect x="61" y="28" width="6" height="10" rx="2" fill="#ef4444" opacity=".7"/>
+    <rect x="35" y="41" width="10" height="10" rx="2.5" fill="#b91c1c"/>
+    <rect x="48" y="41" width="10" height="10" rx="2.5" fill="#dc2626"/>
+    <circle cx="37" cy="60" r="2" fill="#ef4444"/>
+    <circle cx="43" cy="60" r="2" fill="#ef4444" opacity=".6"/>
+    <circle cx="49" cy="60" r="2" fill="#ef4444" opacity=".3"/>
+    <rect x="20" y="30" width="3" height="12" rx="1.5" fill="#b91c1c"/>
+    <rect x="77" y="25" width="3" height="8" rx="1.5" fill="#b91c1c"/>
+  </svg>`,
+
+  laptop:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="lpg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <path d="M10 75 L90 75 L85 82 L15 82Z" fill="url(#lpg)"/>
+    <ellipse cx="50" cy="75" rx="6" ry="1.5" fill="#f87171" opacity=".5"/>
+    <rect x="20" y="15" width="60" height="58" rx="4" fill="url(#lpg)"/>
+    <rect x="23" y="18" width="54" height="50" rx="2" fill="#0a0a0a"/>
+    <rect x="26" y="21" width="48" height="44" rx="2" fill="#141414"/>
+    <rect x="29" y="25" width="20" height="2" rx="1" fill="#dc2626"/>
+    <rect x="29" y="29" width="32" height="2" rx="1" fill="#ef4444" opacity=".6"/>
+    <rect x="29" y="33" width="25" height="2" rx="1" fill="#ef4444" opacity=".4"/>
+    <rect x="29" y="37" width="30" height="2" rx="1" fill="#b91c1c" opacity=".7"/>
+    <rect x="29" y="41" width="18" height="2" rx="1" fill="#ef4444" opacity=".3"/>
+    <rect x="29" y="45" width="28" height="2" rx="1" fill="#dc2626" opacity=".8"/>
+    <rect x="29" y="49" width="22" height="2" rx="1" fill="#ef4444" opacity=".5"/>
+    <rect x="29" y="53" width="2" height="6" rx="1" fill="#f87171"/>
+    <circle cx="50" cy="16.5" r="1.5" fill="#ef4444" opacity=".5"/>
+    <rect x="15" y="69" width="70" height="6" rx="2" fill="#0a0a0a" opacity=".4"/>
+    <rect x="22" y="70.5" width="4" height="3" rx=".7" fill="#ef4444" opacity=".3"/>
+    <rect x="28" y="70.5" width="4" height="3" rx=".7" fill="#ef4444" opacity=".3"/>
+    <rect x="34" y="70.5" width="4" height="3" rx=".7" fill="#ef4444" opacity=".3"/>
+    <rect x="40" y="70.5" width="4" height="3" rx=".7" fill="#ef4444" opacity=".3"/>
+    <rect x="46" y="70.5" width="4" height="3" rx=".7" fill="#ef4444" opacity=".3"/>
+  </svg>`,
+
+  headphones:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="hpg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <path d="M20 50 C20 26 36 14 50 14 C64 14 80 26 80 50" stroke="url(#hpg)" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <rect x="10" y="46" width="20" height="28" rx="8" fill="url(#hpg)"/>
+    <rect x="13" y="50" width="14" height="20" rx="6" fill="#141414"/>
+    <circle cx="20" cy="60" r="5" fill="#dc2626" opacity=".6"/>
+    <circle cx="20" cy="60" r="2.5" fill="#ef4444"/>
+    <rect x="70" y="46" width="20" height="28" rx="8" fill="url(#hpg)"/>
+    <rect x="73" y="50" width="14" height="20    rx="6" fill="#141414"/>
+    <circle cx="80" cy="60" r="5" fill="#dc2626" opacity=".6"/>
+    <circle cx="80" cy="60" r="2.5" fill="#ef4444"/>
+    <path d="M44 50 C46 46 54 46 56 50 C54 54 46 54 44 50Z" fill="#f87171" opacity=".4"/>
+    <path d="M40 48 C44 40 56 40 60 48" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".5"/>
+    <circle cx="50" cy="78" r="4" fill="#dc2626" stroke="#ef4444" stroke-width="1.5"/>
+    <circle cx="50" cy="78" r="1.5" fill="#ef4444"/>
+  </svg>`,
+
+  watch:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <rect x="36" y="8" width="28" height="22" rx="5" fill="#3d0a0a"/>
+    <rect x="40" y="10" width="20" height="18" rx="3" fill="#2a0606"/>
+    <rect x="36" y="70" width="28" height="22" rx="5" fill="#3d0a0a"/>
+    <rect x="40" y="72" width="20" height="18" rx="3" fill="#2a0606"/>
+    <rect x="22" y="26" width="56" height="48" rx="14" fill="url(#wg)"/>
+    <rect x="25" y="29" width="50" height="42" rx="12" fill="#0a0a0a"/>
+    <rect x="27" y="31" width="46" height="38" rx="10" fill="#141414"/>
+    <circle cx="50" cy="50" r="16" fill="none" stroke="#ef4444" stroke-width="0.5" opacity=".4"/>
+    <rect x="49.2" y="35" width="1.6" height="3.5" rx=".8" fill="#ef4444" opacity=".7"/>
+    <rect x="49.2" y="61.5" width="1.6" height="3.5" rx=".8" fill="#ef4444" opacity=".7"/>
+    <rect x="35" y="49.2" width="3.5" height="1.6" rx=".8" fill="#ef4444" opacity=".7"/>
+    <rect x="61.5" y="49.2" width="3.5" height="1.6" rx=".8" fill="#ef4444" opacity=".7"/>
+    <line x1="50" y1="50" x2="50" y2="40" stroke="#f87171" stroke-width="2" stroke-linecap="round"/>
+    <line x1="50" y1="50" x2="57" y2="53" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="50" cy="50" r="2" fill="#f87171"/>
+    <rect x="76" y="44" width="5" height="12" rx="2.5" fill="#b91c1c"/>
+  </svg>`,
+
+  dress:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="dg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f87171"/><stop offset="100%" stop-color="#dc2626"/></linearGradient>
+      <linearGradient id="dg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#b91c1c"/></linearGradient>
+    </defs>
+    <path d="M30 22 L20 35 L30 38 L34 28Z" fill="url(#dg2)"/>
+    <path d="M70 22 L80 35 L70 38 L66 28Z" fill="url(#dg2)"/>
+    <path d="M34 22 L34 42 L20 88 L80 88 L66 42 L66 22 C60 18 40 18 34 22Z" fill="url(#dg)"/>
+    <path d="M34 42 L30 52 L70 52 L66 42Z" fill="url(#dg2)" opacity=".7"/>
+    <circle cx="50" cy="30" r="2" fill="#fff" opacity=".5"/>
+    <circle cx="42" cy="38" r="1.5" fill="#fff" opacity=".4"/>
+    <circle cx="58" cy="36" r="1.5" fill="#fff" opacity=".4"/>
+    <circle cx="36" cy="62" r="1.5" fill="#fff" opacity=".3"/>
+    <circle cx="64" cy="68" r="1.5" fill="#fff" opacity=".3"/>
+    <circle cx="50" cy="72" r="1" fill="#fff" opacity=".4"/>
+    <circle cx="44" cy="80" r="1" fill="#fff" opacity=".3"/>
+    <circle cx="56" cy="78" r="1" fill="#fff" opacity=".3"/>
+    <path d="M34 22 C38 26 62 26 66 22" fill="none" stroke="#f87171" stroke-width="1.5"/>
+    <rect x="30" y="50" width="40" height="4" rx="2" fill="#b91c1c"/>
+    <rect x="46" y="49" width="8" height="6" rx="2" fill="#ef4444"/>
+  </svg>`,
+
+  sneaker:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <path d="M8 75 L12 82 L88 82 L92 75 L85 68 L15 68Z" fill="#2a0606"/>
+    <path d="M10 75 L90 75 L88 78 L12 78Z" fill="#ef4444" opacity=".3"/>
+    <path d="M15 68 L12 54 L22 42 L42 38 L65 40 L85 58 L85 68Z" fill="url(#sg)"/>
+    <path d="M12 54 L22 42 L36 40 L28 56 L12 54Z" fill="#f87171" opacity=".7"/>
+    <rect x="35" y="40" width="36" height="22" rx="4" fill="#141414" opacity=".5"/>
+    <line x1="38" y1="43" x2="68" y2="43" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 3"/>
+    <line x1="38" y1="47" x2="68" y2="47" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 3"/>
+    <line x1="38" y1="51" x2="68" y2="51" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 3"/>
+    <line x1="38" y1="55" x2="64" y2="55" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 3"/>
+    <path d="M74 52 L75.5 56 L80 56 L76.5 58.5 L77.5 63 L74 60.5 L70.5 63 L71.5 58.5 L68 56 L72.5 56Z" fill="#f87171" opacity=".8"/>
+    <path d="M78 58 L85 58 L85 68 L78 68Z" fill="#b91c1c"/>
+  </svg>`,
+
+  bag:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <path d="M38 20 C38 12 62 12 62 20" stroke="url(#bg2)" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <rect x="15" y="28" width="70" height="58" rx="10" fill="url(#bg2)"/>
+    <rect x="22" y="44" width="56" height="32" rx="8" fill="#0a0a0a" opacity=".4"/>
+    <line x1="28" y1="44" x2="72" y2="44" stroke="#f87171" stroke-width="1.5"/>
+    <circle cx="50" cy="44" r="3" fill="#f87171"/>
+    <rect x="42" y="28" width="16" height="8" rx="4" fill="#f87171"/>
+    <rect x="46" y="30" width="8" height="4" rx="2" fill="#ef4444"/>
+    <circle cx="35" cy="56" r="2" fill="#f87171" opacity=".4"/>
+    <circle cx="65" cy="60" r="2" fill="#f87171" opacity=".4"/>
+    <circle cx="50" cy="68" r="1.5" fill="#f87171" opacity=".3"/>
+    <circle cx="42" cy="64" r="1" fill="#f87171" opacity=".3"/>
+    <circle cx="58" cy="52" r="1" fill="#f87171" opacity=".3"/>
+    <path d="M36 58 L38 62 L34 62Z" fill="#f87171" opacity=".5"/>
+    <path d="M64 54 L66 58 L62 58Z" fill="#f87171" opacity=".5"/>
+  </svg>`,
+
+  earbuds:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="ebg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <rect x="22" y="35" width="56" height="38" rx="12" fill="url(#ebg)"/>
+    <rect x="26" y="39" width="48" height="30" rx="9" fill="#0a0a0a"/>
+    <ellipse cx="36" cy="54" rx="8" ry="10" fill="#141414" stroke="#ef4444" stroke-width="1"/>
+    <ellipse cx="64" cy="54" rx="8" ry="10" fill="#141414" stroke="#ef4444" stroke-width="1"/>
+    <ellipse cx="36" cy="52" rx="5" ry="6.5" fill="url(#ebg)"/>
+    <ellipse cx="36" cy="51" rx="2.5" ry="3" fill="#f87171" opacity=".6"/>
+    <ellipse cx="64" cy="52" rx="5" ry="6.5" fill="url(#ebg)"/>
+    <ellipse cx="64" cy="51" rx="2.5" ry="3" fill="#f87171" opacity=".6"/>
+    <circle cx="50" cy="41" r="2.5" fill="#22c55e" opacity=".8"/>
+    <line x1="22" y1="54" x2="28" y2="54" stroke="#ef4444" stroke-width="1" opacity=".5"/>
+    <line x1="72" y1="54" x2="78" y2="54" stroke="#ef4444" stroke-width="1" opacity=".5"/>
+    <path d="M22 47 C22 38 78 38 78 47" fill="none" stroke="#ef4444" stroke-width="1" opacity=".4"/>
+    <circle cx="34" cy="82" r="2" fill="#f87171" opacity=".5"/>
+    <circle cx="50" cy="86" r="1.5" fill="#ef4444" opacity=".4"/>
+    <circle cx="66" cy="82" r="2" fill="#f87171" opacity=".5"/>
+  </svg>`,
+
+  diffuser:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="dfg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <path d="M44 18 C44 14 46 12 46 8" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".5"/>
+    <path d="M50 14 C50 10 52 8 51 4" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".6"/>
+    <path d="M56 18 C56 14 58 12 57 8" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".5"/>
+    <path d="M30 58 C28 72 72 72 70 58 L65 36 C63 28 37 28 35 36Z" fill="url(#dfg)"/>
+    <ellipse cx="50" cy="36" rx="16" ry="6" fill="#f87171" opacity=".8"/>
+    <rect x="46" y="20" width="8" height="16" rx="4" fill="#f87171"/>
+    <ellipse cx="50" cy="20" rx="4" ry="2.5" fill="#ef4444"/>
+    <ellipse cx="50" cy="65" rx="18" ry="5" fill="#ef4444" opacity=".2"/>
+    <ellipse cx="50" cy="70" rx="20" ry="5" fill="#2a0606"/>
+    <path d="M32 60 C32 52 68 52 68 60" stroke="#f87171" stroke-width="2" stroke-linecap="round" fill="none" opacity=".4"/>
+    <circle cx="42" cy="50" r="1.5" fill="#fff" opacity=".3"/>
+    <circle cx="58" cy="44" r="1.5" fill="#fff" opacity=".3"/>
+    <circle cx="50" cy="55" r="1" fill="#fff" opacity=".4"/>
+  </svg>`,
+
+  lamp:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="lampg" cx="50%" cy="60%" r="50%"><stop offset="0%" stop-color="#ef4444" stop-opacity=".7"/><stop offset="100%" stop-color="#dc2626" stop-opacity="0"/></radialGradient>
+      <linearGradient id="lampbg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient>
+    </defs>
+    <ellipse cx="50" cy="50" rx="30" ry="25" fill="url(#lampg)"/>
+    <path d="M28 52 L38 28 L62 28 L72 52Z" fill="url(#lampbg)"/>
+    <path d="M28 52 L72 52 L74 56 L26 56Z" fill="#f87171" opacity=".7"/>
+    <path d="M33 52 L40 34 L60 34 L67 52Z" fill="#0a0a0a" opacity=".5"/>
+    <circle cx="50" cy="38" r="6" fill="#fff" opacity=".15"/>
+    <rect x="48" y="56" width="4" height="26" rx="2" fill="url(#lampbg)"/>
+    <ellipse cx="50" cy="82" rx="14" ry="4" fill="#2a0606"/>
+    <ellipse cx="50" cy="80" rx="10" ry="3" fill="url(#lampbg)"/>
+    <circle cx="30" cy="35" r="1.5" fill="#f87171" opacity=".6"/>
+    <circle cx="70" cy="30" r="1.5" fill="#f87171" opacity=".6"/>
+    <circle cx="22" cy="50" r="1" fill="#ef4444" opacity=".5"/>
+    <circle cx="78" cy="45" r="1" fill="#ef4444" opacity=".5"/>
+  </svg>`,
+
+  perfume:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="pfg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f87171"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <path d="M70 28 C74 26 76 22 74 18" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".5"/>
+    <path d="M70 28 C76 30 80 26 78 22" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".4"/>
+    <path d="M70 28 C78 28 80 24 76 20" stroke="#f87171" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".3"/>
+    <rect x="60" y="25" width="12" height="4" rx="2" fill="url(#pfg)"/>
+    <rect x="45" y="22" width="16" height="8" rx="3" fill="#ef4444"/>
+    <rect x="28" y="30" width="44" height="56" rx="10" fill="url(#pfg)"/>
+    <rect x="32" y="34" width="12" height="48" rx="6" fill="#fff" opacity=".12"/>
+    <rect x="32" y="52" width="36" height="22" rx="5" fill="#0a0a0a" opacity=".5"/>
+    <text x="50" y="63" fill="#f87171" font-size="7" text-anchor="middle" font-weight="bold" font-family="serif">SEHLE</text>
+    <text x="50" y="70" fill="#ef4444" font-size="5" text-anchor="middle" font-family="sans-serif">PARFÜM</text>
+    <line x1="34" y1="74" x2="66" y2="74" stroke="#ef4444" stroke-width=".5" opacity=".5"/>
+    <path d="M28 38 C28 32 72 32 72 38" fill="#f87171" opacity=".3"/>
+    <rect x="43" y="17" width="14" height="7" rx="3.5" fill="#b91c1c"/>
+    <circle cx="68" cy="27" r="3" fill="none" stroke="#f87171" stroke-width="1"/>
+  </svg>`,
+
+  glitter:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="glg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f87171"/><stop offset="100%" stop-color="#ef4444"/></linearGradient></defs>
+    <ellipse cx="50" cy="62" rx="36" ry="28" fill="#1a0a0a" stroke="url(#glg)" stroke-width="2"/>
+    <line x1="14" y1="62" x2="86" y2="62" stroke="#ef4444" stroke-width="1" opacity=".3"/>
+    <circle cx="34" cy="52" r="10" fill="#f87171" opacity=".85"/>
+    <circle cx="50" cy="52" r="10" fill="#ef4444" opacity=".85"/>
+    <circle cx="66" cy="52" r="10" fill="#b91c1c" opacity=".85"/>
+    <circle cx="34" cy="72" r="10" fill="#fca5a5" opacity=".85"/>
+    <circle cx="50" cy="72" r="10" fill="#dc2626" opacity=".85"/>
+    <circle cx="66" cy="72" r="10" fill="#991b1b" opacity=".85"/>
+    <circle cx="31" cy="49" r="3" fill="#fff" opacity=".4"/>
+    <circle cx="47" cy="49" r="3" fill="#fff" opacity=".4"/>
+    <circle cx="63" cy="49" r="3" fill="#fff" opacity=".4"/>
+    <ellipse cx="50" cy="38" rx="32" ry="18" fill="#0a0a0a" stroke="url(#glg)" stroke-width="1.5"/>
+    <ellipse cx="50" cy="38" rx="28" ry="14" fill="#141414"/>
+    <text x="50" y="41" fill="#ef4444" font-size="7" text-anchor="middle" font-family="sans-serif" opacity=".7">✦ SEHLE ✦</text>
+    <path d="M22 34 L23 30 L24 34 L28 35 L24 36 L23 40 L22 36 L18 35Z" fill="#f87171" opacity=".6"/>
+    <path d="M74 28 L75 25 L76 28 L79 29 L76 30 L75 33 L74 30 L71 29Z" fill="#f87171" opacity=".6"/>
+    <path d="M16 54 L17 52 L18 54 L20 55 L18 56 L17 58 L16 56 L14 55Z" fill="#ef4444" opacity=".5"/>
+    <path d="M82 50 L83 48 L84 50 L86 51 L84 52 L83 54 L82 52 L80 51Z" fill="#ef4444" opacity=".5"/>
+  </svg>`,
+
+  yoga:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="ymg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <ellipse cx="16" cy="60" rx="8" ry="30" fill="url(#ymg)"/>
+    <rect x="16" y="30" width="68" height="60" fill="url(#ymg)"/>
+    <ellipse cx="84" cy="60" rx="8" ry="30" fill="#b91c1c"/>
+    <line x1="20" y1="45" x2="80" y2="45" stroke="#f87171" stroke-width="1" opacity=".3"/>
+    <line x1="20" y1="60" x2="80" y2="60" stroke="#f87171" stroke-width="1" opacity=".3"/>
+    <line x1="20" y1="75" x2="80" y2="75" stroke="#f87171" stroke-width="1" opacity=".3"/>
+    <path d="M40 52 L41.5 56 L46 56 L42.5 58.5 L43.5 63 L40 60.5 L36.5 63 L37.5 58.5 L34 56 L38.5 56Z" fill="#f87171" opacity=".5"/>
+    <path d="M65 48 L66 51 L69 51 L67 53 L67.5 56 L65 54.5 L62.5 56 L63 53 L61 51 L64 51Z" fill="#f87171" opacity=".5"/>
+    <circle cx="52" cy="60" r="8" fill="#0a0a0a" opacity=".4"/>
+    <path d="M52 55 L53.5 59 L58 59 L54.5 61.5 L55.5 66 L52 63.5 L48.5 66 L49.5 61.5 L46 59 L50.5 59Z" fill="#f87171" opacity=".7"/>
+  </svg>`,
+
+  bottle:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="btg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <rect x="40" y="10" width="20" height="12" rx="6" fill="#b91c1c"/>
+    <rect x="43" y="12" width="14" height="8" rx="4" fill="url(#btg)"/>
+    <rect x="42" y="20" width="16" height="10" rx="4" fill="url(#btg)"/>
+    <path d="M42 30 C36 34 32 40 30 50 L70 50 C68 40 64 34 58 30Z" fill="url(#btg)"/>
+    <rect x="30" y="50" width="40" height="36" rx="6" fill="url(#btg)"/>
+    <ellipse cx="50" cy="86" rx="20" ry="5" fill="#2a0606"/>
+    <rect x="33" y="60" width="34" height="22" rx="4" fill="#ef4444" opacity=".2"/>
+    <rect x="33" y="72" width="34" height="10" rx="4" fill="#ef4444" opacity=".3"/>
+    <rect x="30" y="52" width="40" height="6" rx="3" fill="#f87171" opacity=".4"/>
+    <circle cx="50" cy="55" r="3" fill="#22c55e" opacity=".8"/>
+    <rect x="34" y="55" width="5" height="26" rx="2.5" fill="#fff" opacity=".1"/>
+    <circle cx="42" cy="66" r="1" fill="#f87171" opacity=".5"/>
+    <circle cx="58" cy="70" r="1" fill="#f87171" opacity=".5"/>
+    <circle cx="50" cy="76" r="1" fill="#f87171" opacity=".4"/>
+  </svg>`,
+
+  book:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="bkg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <rect x="18" y="18" width="60" height="70" rx="4" fill="#2a0606" opacity=".5"/>
+    <rect x="20" y="16" width="60" height="70" rx="4" fill="#dc2626" opacity=".4"/>
+    <rect x="22" y="14" width="60" height="70" rx="5" fill="url(#bkg)"/>
+    <rect x="22" y="14" width="10" height="70" rx="5" fill="#141414" opacity=".4"/>
+    <rect x="27" y="17" width="52" height="64" rx="3" fill="#f5e6ff"/>
+    <rect x="32" y="24" width="38" height="3" rx="1.5" fill="#ef4444" opacity=".5"/>
+    <rect x="32" y="30" width="32" height="2" rx="1" fill="#dc2626" opacity=".4"/>
+    <rect x="32" y="35" width="36" height="2" rx="1" fill="#dc2626" opacity=".4"/>
+    <rect x="32" y="40" width="28" height="2" rx="1" fill="#dc2626" opacity=".4"/>
+    <rect x="32" y="45" width="34" height="2" rx="1" fill="#dc2626" opacity=".4"/>
+    <rect x="32" y="52" width="40" height="22" rx="4" fill="#1a0a0a"/>
+    <circle cx="52" cy="63" r="8" fill="none" stroke="#ef4444" stroke-width="1" opacity=".5"/>
+    <circle cx="52" cy="63" r="4" fill="#ef4444" opacity=".3"/>
+    <circle cx="52" cy="63" r="2" fill="#f87171"/>
+    <circle cx="44" cy="58" r="1" fill="#ef4444" opacity=".6"/>
+    <circle cx="60" cy="68" r="1" fill="#ef4444" opacity=".6"/>
+    <circle cx="62" cy="58" r="1" fill="#f87171" opacity=".5"/>
+    <path d="M70 14 L70 32 L66 28 L62 32 L62 14Z" fill="#f87171"/>
+  </svg>`,
+
+  gamepad:`<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="gplg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#dc2626"/></linearGradient></defs>
+    <path d="M15 40 C12 36 12 28 20 26 L80 26 C88 28 88 36 85 40 L75 72 C72 80 60 84 50 84 C40 84 28 80 25 72Z" fill="url(#gplg)"/>
+    <rect x="26" y="44" width="8" height="24" rx="2" fill="#f87171"/>
+    <rect x="20" y="50" width="20" height="12" rx="2" fill="#f87171"/>
+    <circle cx="66" cy="48" r="5" fill="#f59e0b"/>
+    <circle cx="74" cy="56" r="5" fill="#22c55e"/>
+    <circle cx="58" cy="56" r="5" fill="#ef4444"/>
+    <circle cx="66" cy="64" r="5" fill="#3b82f6"/>
+    <circle cx="36" cy="68" r="7" fill="#141414" stroke="#ef4444" stroke-width="1.5"/>
+    <circle cx="36" cy="68" r="4" fill="#b91c1c"/>
+    <circle cx="60" cy="68" r="7" fill="#141414" stroke="#ef4444" stroke-width="1.5"/>
+    <circle cx="60" cy="68" r="4" fill="#b91c1c"/>
+    <rect x="44" y="40" width="5" height="3" rx="1.5" fill="#ef4444" opacity=".7"/>
+    <rect x="51" y="40" width="5" height="3" rx="1.5" fill="#ef4444" opacity=".7"/>
+    <circle cx="50" cy="34" r="3" fill="#f87171" opacity=".6"/>
+    <path d="M15 38 C12 32 14 26 20 26" stroke="#f87171" stroke-width="3" stroke-linecap="round" fill="none" opacity=".6"/>
+    <path d="M85 38 C88 32 86 26 80 26" stroke="#f87171" stroke-width="3" stroke-linecap="round" fill="none" opacity=".6"/>
+  </svg>`,
+
+  // Kategori ikonları
+  allstar:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 6 L22.5 14 L31 14 L24.5 19 L27 27 L20 22 L13 27 L15.5 19 L9    L17.5 14Z" fill="#ef4444"/>
+    <circle cx="20" cy="20" r="3" fill="#f87171"/>
+  </svg>`,
+
+  techicon:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="8" width="28" height="18" rx="3" fill="none" stroke="#ef4444" stroke-width="2"/>
+    <rect x="10" y="11" width="20" height="12" rx="1.5" fill="#dc2626" opacity=".5"/>
+    <rect x="14" y="26" width="12" height="3" rx="1.5" fill="#ef4444"/>
+    <rect x="10" y="29" width="20" height="2" rx="1" fill="#b91c1c" opacity=".6"/>
+  </svg>`,
+
+  fashionicon:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 5 C16 8 13 10 8 10 L10 22 L20 22 L30 22 L32 10 C27 10 24 8 20 5Z" fill="none" stroke="#ef4444" stroke-width="2"/>
+    <line x1="20" y1="5" x2="20" y2="22" stroke="#b91c1c" stroke-width="1.5" stroke-dasharray="2 2"/>
+    <path d="M8 10 L6 22 L10 22" fill="none" stroke="#ef4444" stroke-width="1.5"/>
+    <path d="M32 10 L34 22 L30 22" fill="none" stroke="#ef4444" stroke-width="1.5"/>
+    <path d="M10 22 L10 34 L30 34 L30 22" fill="none" stroke="#ef4444" stroke-width="2"/>
+  </svg>`,
+
+  homeicon:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 18 L20 6 L34 18" stroke="#ef4444" stroke-width="2" stroke-linecap="round" fill="none"/>
+    <path d="M9 16 L9 34 L31 34 L31 16" fill="none" stroke="#ef4444" stroke-width="2"/>
+    <rect x="16" y="24" width="8" height="10" rx="1.5" fill="#b91c1c" opacity=".6"/>
+    <rect x="12" y="20" width="6" height="5" rx="1" fill="#ef4444" opacity=".5"/>
+    <rect x="22" y="20" width="6" height="5" rx="1" fill="#ef4444" opacity=".5"/>
+  </svg>`,
+
+  beautyicon:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 6 C20 6 28 12 28 20 C28 24.4 24.4 28 20 28 C15.6 28 12 24.4 12 20 C12 12 20 6 20 6Z" fill="none" stroke="#ef4444" stroke-width="2"/>
+    <circle cx="20" cy="20" r="5" fill="#f87171" opacity=".6"/>
+    <path d="M20 8 C22 12 24 16 24 20" stroke="#ef4444" stroke-width="1" opacity=".5"/>
+    <rect x="18" y="28" width="4" height="6" rx="2" fill="#b91c1c"/>
+    <rect x="14" y="34" width="12" height="2" rx="1" fill="#ef4444" opacity=".5"/>
+  </svg>`,
+
+  sportsicon:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="20" r="13" fill="none" stroke="#ef4444" stroke-width="2"/>
+    <path d="M11 12 C14 16 14 24 11 28" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+    <path d="M29 12 C26 16 26 24 29 28" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+    <line x1="7" y1="20" x2="33" y2="20" stroke="#ef4444" stroke-width="1.5" opacity=".5"/>
+  </svg>`,
+
+  booksicon:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="7" width="15" height="26" rx="2" fill="none" stroke="#ef4444" stroke-width="2"/>
+    <rect x="17" y="9" width="15" height="26" rx="2" fill="none" stroke="#b91c1c" stroke-width="2"/>
+    <line x1="11" y1="14" x2="18" y2="14" stroke="#ef4444" stroke-width="1.5"/>
+    <line x1="11" y1="18" x2="18" y2="18" stroke="#ef4444" stroke-width="1" opacity=".6"/>
+    <line x1="11" y1="22" x2="18" y2="22" stroke="#ef4444" stroke-width="1" opacity=".6"/>
+    <line x1="20" y1="16" x2="28" y2="16" stroke="#b91c1c" stroke-width="1.5"/>
+    <line x1="20" y1="20" x2="28" y2="20" stroke="#b91c1c" stroke-width="1" opacity=".6"/>
+  </svg>`,
+
+  toysicon:`<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="7" y="14" width="26" height="18" rx="5" fill="none" stroke="#ef4444" stroke-width="2"/>
+    <rect x="12" y="18" width="4" height="10" rx="1" fill="#b91c1c" opacity=".7"/>
+    <rect x="10" y="21" width="8" height="4" rx="1" fill="#b91c1c" opacity=".7"/>
+    <circle cx="26" cy="21" r="3" fill="#f87171" opacity=".7"/>
+    <circle cx="26" cy="27" r="3" fill="#ef4444" opacity=".7"/>
+    <path d="M13 9 L13 14" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+    <path d="M27 9 L27 14" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+
+  // Wishlist heart
+  heartfill:`<svg viewBox="0 0 24 24" fill="#ef4444" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+  heartempty:`<svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+
+  // Cart empty
+  cartEmpty:`<svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="18" cy="47" r="4" fill="#dc2626" opacity=".5"/>
+    <circle cx="38" cy="47" r="4" fill="#dc2626" opacity=".5"/>
+    <path d="M4 6 L11 6 L18 34 L40 34" stroke="#dc2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".5"/>
+    <path d="M16 14 L44 14 L40 34 L18 34Z" fill="#ef4444" opacity=".15" stroke="#ef4444" stroke-width="1.5" opacity=".4"/>
+    <path d="M24 22 L32 30 M32 22 L24 30" stroke="#ef4444" stroke-width="2" stroke-linecap="round" opacity=".4"/>
+  </svg>`,
+};
+
+// ── DATA ──
+const CATS = [
+  {id:'all',name:'Tümü',icon:'allstar',count:'48K+'},
+  {id:'tech',name:'Teknoloji',icon:'techicon',count:'12K'},
+  {id:'fashion',name:'Moda',icon:'fashionicon',count:'9K'},
+  {id:'home',name:'Ev & Yaşam',icon:'homeicon',count:'7K'},
+  {id:'beauty',name:'Güzellik',icon:'beautyicon',count:'5K'},
+  {id:'sports',name:'Spor',icon:'sportsicon',count:'4K'},
+  {id:'books',name:'Kitap',icon:'booksicon',count:'8K'},
+  {id:'toys',name:'Oyuncak',icon:'toysicon',count:'3K'},
+];
+
+const PRODS = [
+  {id:1,name:'Kozmik Pro Telefon',price:18999,old:22999,cat:'tech',catName:'Teknoloji',svgKey:'phone',rating:4.9,reviews:1248,badge:'hot',desc:'Son teknoloji işlemci, 200MP kamera ve 5000mAh batarya ile gelen amiral gemisi akıllı telefon.'},
+  {id:2,name:'Nebula Dizüstü',price:32999,old:38999,cat:'tech',catName:'Teknoloji',svgKey:'laptop',rating:4.8,reviews:876,badge:'new',desc:'Ultra ince tasarım, 16 saat pil ömrü ve güçlü ekran kartıyla yüksek performans.'},
+  {id:3,name:'Yıldız Kulaklığı',price:1299,old:null,cat:'tech',catName:'Teknoloji',svgKey:'headphones',rating:4.7,reviews:2340,badge:null,desc:'Aktif gürültü engelleme ve kristal ses kalitesiyle uzayda müzik deneyimi.'},
+  {id:4,name:'Galaksi Akıllı Saat',price:4999,old:6499,cat:'tech',catName:'Teknoloji',svgKey:'watch',rating:4.8,reviews:654,badge:'sale',desc:'Sağlık takibi, GPS ve su geçirmezlik özellikleriyle spor odaklı akıllı saat.'},
+  {id:5,name:'Nebula Elbise',price:899,old:1199,cat:'fashion',catName:'Moda',svgKey:'dress',rating:4.6,reviews:432,badge:'new',desc:'Galaksi desenli premium kumaştan üretilmiş şık gece elbisesi.'},
+  {id:6,name:'Kozmik Ayakkabı',price:2299,old:null,cat:'fashion',catName:'Moda',svgKey:'sneaker',rating:4.7,reviews:789,badge:null,desc:'Yıldız tozu detaylı, ultra hafif ve rahat günlük spor ayakkabı.'},
+  {id:7,name:'Uzay Çantası',price:1599,old:1999,cat:'fashion',catName:'Moda',svgKey:'bag',rating:4.5,reviews:321,badge:'sale',desc:'Metalik nebula efektli, geniş hacimli ve su geçirmez premium çanta.'},
+  {id:8,name:'Galaksi Kulaklık',price:699,old:null,cat:'tech',catName:'Teknoloji',svgKey:'earbuds',rating:4.6,reviews:543,badge:null,desc:'Kristal ses kalitesiyle TWS kablosuz kulaklık seti.'},
+  {id:9,name:'Yıldız Difüzör',price:399,old:499,cat:'home',catName:'Ev & Yaşam',svgKey:'diffuser',rating:4.8,reviews:1120,badge:'hot',desc:'Renk değiştiren ışık sistemi ve aroma difüzörü bir arada.'},
+  {id:10,name:'Nebula Lamba',price:549,old:null,cat:'home',catName:'Ev & Yaşam',svgKey:'lamp',rating:4.7,reviews:654,badge:'new',desc:'Galaksi projeksiyonlu, uyku modlu akıllı gece lambası.'},
+  {id:11,name:'Kozmik Parfüm',price:1199,old:1499,cat:'beauty',catName:'Güzellik',svgKey:'perfume',rating:4.9,reviews:876,badge:'hot',desc:'Uzaydan ilham alan benzersiz koku harmanı, 100ml EDP.'},
+  {id:12,name:'Yıldız Tozu Makyaj',price:289,old:null,cat:'beauty',catName:'Güzellik',svgKey:'glitter',rating:4.6,reviews:1432,badge:null,desc:'Holografik parıltı efektli highlighter set, 6 renk.'},
+  {id:13,name:'Galaksi Yoga Matı',price:799,old:999,cat:'sports',catName:'Spor',svgKey:'yoga',rating:4.7,reviews:345,badge:'sale',desc:'Extra kalın, kaymaz taban ve galaksi desen baskılı premium yoga matı.'},
+  {id:14,name:'Nebula Su Şişesi',price:249,old:null,cat:'sports',catName:'Spor',svgKey:'bottle',rating:4.8,reviews:2100,badge:'hot',desc:'UV sterilizasyon ve sıcaklık sensörlü akıllı termos.'},
+  {id:15,name:'Uzay Atlası',price:189,old:249,cat:'books',catName:'Kitap',svgKey:'book',rating:4.9,reviews:543,badge:'new',desc:'Görsel ağırlıklı, 500+ sayfa kapsamlı evren rehberi kitabı.'},
+  {id:16,name:'Galaksi Oyun Seti',price:499,old:null,cat:'toys',catName:'Oyuncak',svgKey:'gamepad',rating:4.7,reviews:234,badge:'new',desc:'Glow-in-the-dark yıldız haritası ve gamepad içeren çocuk seti.'},
+];
+
+const TESTS = [
+  {stars:5,txt:'Sehle\'den aldığım her ürün beklentimi aştı. Kargo süper hızlı geldi, ambalaj da çok şıktı!',name:'Aylin Kara',handle:'@aylin_stars',color:'#dc2626'},
+  {stars:5,txt:'Galaksi temalı tasarım çok hoşuma gitti. Hem site kullanımı hem de ürün kalitesi mükemmel.',name:'Mert Yıldız',handle:'@mert.cosmos',color:'#b91c1c'},
+  {stars:5,txt:'Müşteri desteği inanılmaz! Bir sorunum vardı anında çözüldü. Bu kadar özenli bir mağaza görmemiştim.',name:'Selin Nebula',handle:'@selin_n',color:'#ef4444'},
+  {stars:4,txt:'Ürünler gerçekten kaliteli. Fiyat/performans oranı mükemmel. Tekrar alışveriş yapacağım.',name:'Kerem Aydın',handle:'@kerem.cosmic',color:'#dc2626'},
+  {stars:5,txt:'Yıllardır çeşitli sitelerden alışveriş yapıyorum ama Sehle\'nin kullanıcı deneyimi bambaşka.',name:'Zeynep Güneş',handle:'@zeynep.stars',color:'#b91c1c'},
+  {stars:5,txt:'Kampanyaları da çok cazip! Bülten aboneliğim sayesinde özel indirim aldım.',name:'Burak Evren',handle:'@burak.galaxy',color:'#dc2626'},
+];
+
+// ── STATE ──
+let cart=[],wishlist=[],user=null,activeCat='all',activeFilt='all',shown=8,coStep=1,pdQty=1;
+
+// ── STARS ──
+(()=>{
+  const c=document.getElementById('starCanvas'),ctx=c.getContext('2d');
+  let stars=[];
+  const make=()=>{stars=[];for(let i=0;i<200;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.4+.3,o:Math.random()*.8+.2,sp:Math.random()*.003+.001});}
+  const resize=()=>{c.width=innerWidth;c.height=innerHeight;make();}
+  const draw=()=>{
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s=>{s.o+=s.sp;if(s.o>1||s.o<.2)s.sp*=-1;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(239,68,68,${s.o})`;ctx.fill();});
+    requestAnimationFrame(draw);
+  };
+  addEventListener('resize',resize);resize();draw();
+})();
+
+// ── NAV ──
+addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',scrollY>50);
+  document.getElementById('bk').classList.toggle('vis',scrollY>400);
+});
+
+// ── MOBILE DRAWER ──
+function toggleDrawer(){
+  document.getElementById('hmb').classList.toggle('open');
+  document.getElementById('mDrawer').classList.toggle('open');
+}
+function closeDrawer(){
+  document.getElementById('hmb').classList.remove('open');
+  document.getElementById('mDrawer').classList.remove('open');
+}
+
+// ── CATS ──
+function renderCats(){
+  document.getElementById('catsGrid').innerHTML=CATS.map(c=>`
+    <div class="cat-card ${activeCat===c.id?'active':''}" onclick="filterCat('${c.id}')">
+      ${SVGS[c.icon]||''}
+      <div class="cat-name">${c.name}</div>
+      <div class="cat-count">${c.count} ürün</div>
+    </div>
+  `).join('');
+}
+function filterCat(id){activeCat=id;shown=8;renderCats();renderProds();document.getElementById('products').scrollIntoView({behavior:'smooth',block:'start'});}
+
+// ── FILTERS ──
+function renderFilts(){
+  const f=[{id:'all',n:'Tümü'},{id:'new',n:'Yeni'},{id:'hot',n:'Popüler 🔥'},{id:'sale',n:'İndirimli'}];
+  document.getElementById('filtsBar').innerHTML=f.map(x=>`<button class="f-btn ${activeFilt===x.id?'active':''}" onclick="setFilt('${x.id}')">${x.n}</button>`).join('');
+}
+function setFilt(id){activeFilt=id;shown=8;renderFilts();renderProds();}
+
+// ── PRODUCTS ──
+function filteredProds(){
+  let l=PRODS;
+  if(activeCat!=='all')l=l.filter(p=>p.cat===activeCat);
+  if(activeFilt==='new')l=l.filter(p=>p.badge==='new');
+  if(activeFilt==='hot')l=l.filter(p=>p.badge==='hot');
+  if(activeFilt==='sale')l=l.filter(p=>p.old!==null);
+  return l;
+}
+function renderProds(){
+  const list=filteredProds().slice(0,shown);
+  const g=document.getElementById('pgrid');
+  if(!list.length){
+    g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--mut);">Bu kategoride ürün bulunamadı.</div>';
+    document.getElementById('lmWrap').style.display='none';return;
+  }
+  document.getElementById('lmWrap').style.display=filteredProds().length>shown?'block':'none';
+  g.innerHTML=list.map(p=>`
+    <div class="pcard" onclick="openPD(${p.id})">
+      <div class="pimg">
+        ${SVGS[p.svgKey]||''}
+        ${p.badge?`<span class="pbadge b-${p.badge}">${p.badge==='new'?'YENİ':p.badge==='hot'?'POPÜLER':'İNDİRİM'}</span>`:''}
+        <div class="pwish ${wishlist.find(w=>w.id===p.id)?'on':''}" onclick="togWish(event,${p.id})">
+          ${wishlist.find(w=>w.id===p.id)?SVGS.heartfill:SVGS.heartempty}
+        </div>
+      </div>
+      <div class="pinfo">
+        <div class="pcat">${p.catName}</div>
+        <div class="pname">${p.name}</div>
+        <div class="pstars">${'★'.repeat(Math.floor(p.rating))}${'☆'.repeat(5-Math.floor(p.rating))}<span>(${p.reviews.toLocaleString('tr')})</span></div>
+        <div class="pbot">
+          <div>
+            <span class="pprice">₺${p.price.toLocaleString('tr')}</span>
+            ${p.old?`<span class="pold">₺${p.old.toLocaleString('tr')}</span>`:''}
+          </div>
+          <button class="btn-add" onclick="addFromList(event,${p.id})">+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function loadMore(){shown+=4;renderProds();}
+function addFromList(e,id){e.stopPropagation();addToCart(PRODS.find(p=>p.id===id));}
+
+// ── SORT ──
+function sortP(){
+  const v=document.getElementById('sortSel').value;
+  if(v==='asc')PRODS.sort((a,b)=>a.price-b.price);
+  else if(v==='desc')PRODS.sort((a,b)=>b.price-a.price);
+  else if(v==='rat')PRODS.sort((a,b)=>b.rating-a.rating);
+  else PRODS.sort((a,b)=>a.id-b.id);
+  renderProds();
+}
+
+// ── TESTIMONIALS ──
+function renderTests(){
+  document.getElementById('tgrid').innerHTML=TESTS.map((t,i)=>`
+    <div class="tcard">
+      <div class="tstars">${'★'.repeat(t.stars)}</div>
+      <p class="ttxt">"${t.txt}"</p>
+      <div class="tauth">
+        <div class="tav" style="background:linear-gradient(135deg,${t.color},#f87171);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:700;">
+          ${t.name.split(' ').map(n=>n[0]).join('')}
+        </div>
+        <div>
+          <div class="tname">${t.name}</div>
+          <div class="than">${t.handle}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── FEATURED ──
+function renderFeat(){document.getElementById('featVis').innerHTML=SVGS.headphones||'';}
+
+// ── PRODUCT DETAIL ──
+function openPD(id){
+  const p=PRODS.find(x=>x.id===id);pdQty=1;
+  document.getElementById('pdC').innerHTML=`
+    <div class="pd-grid">
+      <div class="pd-vis">${SVGS[p.svgKey]||''}</div>
+      <div>
+        ${p.badge?`<span class="pbadge b-${p.badge}" style="margin-bottom:8px;display:inline-block;">${p.badge==='new'?'YENİ':p.badge==='hot'?'POPÜLER':'İNDİRİM'}</span>`:''}
+        <div style="font-size:10px;color:var(--p);letter-spacing:1px;margin-bottom:4px;">${p.catName}</div>
+        <div class="pd-t">${p.name}</div>
+        <div class="pd-st">${'★'.repeat(Math.floor(p.rating))}${'☆'.repeat(5-Math.floor(p.rating))} <span style="color:var(--mut);font-size:12px;">${p.reviews.toLocaleString('tr')} yorum</span></div>
+        <p class="pd-desc">${p.desc}</p>
+        <div class="pd-pw">
+          <span class="pd-price">₺${p.price.toLocaleString('tr')}</span>
+          ${p.old?`<span class="pd-old">₺${p.old.toLocaleString('tr')}</span><span style="font-size:11px;color:var(--ok);font-weight:600;">%${Math.round((1-p.price/p.old)*100)} İndirim</span>`:''}
+        </div>
+        <div class="pd-qty">
+          <button class="pdqb" onclick="chPDQ(-1)">−</button>
+          <span class="pdqv" id="pdqv">1</span>
+          <button class="pdqb" onclick="chPDQ(1)">+</button>
+        </div>
+        <button class="btn-full" onclick="addPD(${p.id})">SEPETE EKLE</button>
+        <button class="btn-ot" style="width:100%;padding:11px;margin-top:8px;" onclick="togWish(null,${p.id},true)">♡ İstek Listesine Ekle</button>
+        <div class="pd-feat" style="margin-top:10px;"><span>✓</span> Ücretsiz Kargo &nbsp; <span>✓</span> 30 Gün İade &nbsp; <span>✓</span> 2 Yıl Garanti</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('pdMod').classList.add('active');
+}
+function chPDQ(d){pdQty=Math.max(1,pdQty+d);document.getElementById('pdqv').textContent=pdQty;}
+function addPD(id){
+  const p=PRODS.find(x=>x.id===id);
+  for(let i=0;i<pdQty;i++)addToCart(p,false);
+  toast(`${pdQty}x ${p.name} sepete eklendi 🚀`);
+  document.getElementById('pdMod').classList.remove('active');
+}
+
+// ── CART ──
+function addToCart(p,t=true){
+  const ex=cart.find(x=>x.id===p.id);
+  if(ex)ex.qty++;else cart.push({...p,qty:1});
+  updateCart();
+  if(t)toast(`${p.name} sepete eklendi ✦`);
+}
+function updateCart(){
+  const b=document.getElementById('cBadge');
+  const tot=cart.reduce((s,i)=>s+i.qty,0);
+  b.textContent=tot;b.style.display=tot>0?'flex':'none';
+  renderCartItems();
+}
+function renderCartItems(){
+  const el=document.getElementById('cartItems');
+  if(!cart.length){el.innerHTML=`<div class="cart-empty">${SVGS.cartEmpty}<div>Sepetiniz boş.<br>Galakside gezmeye başlayın!</div></div>`;return;}
+  el.innerHTML=cart.map(i=>`
+    <div class="c-item">
+      <div class="c-item-ico">${SVGS[i.svgKey]||''}</div>
+      <div style="flex:1">
+        <div class="ci-name">${i.name}</div>
+        <div class="ci-price">₺${(i.price*i.qty).toLocaleString('tr')}</div>
+        <div class="qty-row">
+          <button class="qb" onclick="chQ(${i.id},-1)">−</button>
+          <span class="qv">${i.qty}</span>
+          <button class="qb" onclick="chQ(${i.id},1)">+</button>
+        </div>
+      </div>
+      <button class="del-btn" onclick="delItem(${i.id})">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1V6"/></svg>
+      </button>
+    </div>
+  `).join('');
+  const tv=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById('cTotal').textContent='₺'+tv.toLocaleString('tr');
+}
+function chQ(id,d){
+  const it=cart.find(x=>x.id===id);
+  if(!it)return;it.qty+=d;
+  if(it.qty<=0)cart=cart.filter(x=>x.id!==id);
+  updateCart();
+}
+function delItem(id){cart=cart.filter(x=>x.id!==id);updateCart();toast('Ürün sepetten çıkarıldı.');}
+function toggleCart(){document.getElementById('cartP').classList.toggle('open');document.getElementById('wishP').classList.remove('open');}
+function applyCoupon(){
+  const c=document.getElementById('cupInp').value.trim().toUpperCase();
+  if(c==='SEHLE20')toast('🎉 %20 indirim uygulandı!');
+  else if(c==='GALAKSI')toast('🎉 %15 indirim uygulandı!');
+  else toast('Geçersiz kupon kodu.');
+}
+
+// ── WISHLIST ──
+function togWish(e,id,fromMod=false){
+  if(e)e.stopPropagation();
+  const p=PRODS.find(x=>x.id===id);
+  const idx=wishlist.findIndex(w=>w.id===id);
+  if(idx>-1){wishlist.splice(idx,1);toast(`${p.name} istek listesinden çıkarıldı.`);}
+  else{wishlist.push(p);toast(`${p.name} istek listesine eklendi ♡`);}
+  updateWish();renderProds();
+  if(fromMod)document.getElementById('pdMod').classList.remove('active');
+}
+function updateWish(){
+  const b=document.getElementById('wBadge');
+  b.textContent=wishlist.length;b.style.display=wishlist.length>0?'flex':'none';
+  renderWishItems();
+}
+function renderWishItems(){
+  const el=document.getElementById('wishItems');
+  if(!wishlist.length){el.innerHTML='<div class="cart-empty"><div style="font-size:48px;margin-bottom:12px;opacity:.4;">♡</div><div>İstek listeniz boş.</div></div>';return;}
+  el.innerHTML=wishlist.map(p=>`
+    <div class="c-item">
+      <div class="c-item-ico">${SVGS[p.svgKey]||''}</div>
+      <div style="flex:1">
+        <div class="ci-name">${p.name}</div>
+        <div class="ci-price">₺${p.price.toLocaleString('tr')}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="qb" onclick="addToCart(PRODS.find(x=>x.id===${p.id}))" style="font-size:16px;">+</button>
+        <button class="qb" onclick="togWish(null,${p.id})" style="color:var(--err);">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+function toggleWish(){document.getElementById('wishP').classList.toggle('open');document.getElementById('cartP').classList.remove('open');}
+
+// ── SEARCH ──
+function doSearch(q){
+  const sq=q.toLowerCase().trim();
+  const dr=document.getElementById('srDrop');
+  const li=document.getElementById('srList');
+  if(!sq){dr.style.display='none';return;}
+  const res=PRODS.filter(p=>p.name    .toLowerCase().includes(sq)||p.catName.toLowerCase().includes(sq)).slice(0,5);
+  if(!res.length){li.innerHTML='<div style="padding:14px 18px;color:var(--mut);font-size:13px;">Sonuç bulunamadı.</div>';}
+  else{
+    li.innerHTML=res.map(p=>`
+      <div class="sr-item" onclick="closeSr();openPD(${p.id})">
+        <div class="sr-ico">${SVGS[p.svgKey]||''}</div>
+        <div><div class="sr-name">${p.name}</div><div class="sr-price">₺${p.price.toLocaleString('tr')}</div></div>
+      </div>
+    `).join('');
+  }
+  dr.style.display='block';
+}
+function closeSr(){
+  document.getElementById('srDrop').style.display='none';
+  document.getElementById('srInp').value='';
+  const m=document.getElementById('srInpM');if(m)m.value='';
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#srDrop')&&!e.target.closest('.search-wrap')&&!e.target.closest('#srInpM'))closeSr();
+  if(!e.target.closest('.uwrap'))document.getElementById('uDrop').classList.remove('sh');
+});
+
+// ── AUTH ──
+function openAuth(){document.getElementById('authMod').classList.add('active');switchTab('l');}
+function closeAuth(){document.getElementById('authMod').classList.remove('active');}
+function switchTab(t){
+  document.getElementById('lform').style.display=t==='l'?'block':'none';
+  document.getElementById('rform').style.display=t==='r'?'block':'none';
+  document.getElementById('ltab').classList.toggle('on',t==='l');
+  document.getElementById('rtab').classList.toggle('on',t==='r');
+}
+function doLogin(){
+  const em=document.getElementById('lEmail').value.trim();
+  const pw=document.getElementById('lPass').value;
+  if(!em||!pw){toast('Tüm alanları doldurun.');return;}
+  const us=JSON.parse(localStorage.getItem('sehle_u')||'[]');
+  const u=us.find(x=>x.email===em&&x.pass===pw);
+  if(!u){toast('E-posta veya şifre hatalı!');return;}
+  user=u;localStorage.setItem('sehle_cur',JSON.stringify(u));
+  updateUMenu();closeAuth();toast(`Hoş geldin, ${u.name}! 🚀`);
+}
+function doRegister(){
+  const n=document.getElementById('rName').value.trim();
+  const s=document.getElementById('rSur').value.trim();
+  const em=document.getElementById('rEmail').value.trim();
+  const ph=document.getElementById('rPhone').value.trim();
+  const p=document.getElementById('rPass').value;
+  const p2=document.getElementById('rPass2').value;
+  const ag=document.getElementById('rAgree').checked;
+  if(!n||!s||!em||!p){toast('Tüm alanları doldurun.');return;}
+  if(p!==p2){toast('Şifreler eşleşmiyor!');return;}
+  if(!ag){toast('Sözleşmeyi kabul edin.');return;}
+  if(p.length<6){toast('Şifre en az 6 karakter olmalı.');return;}
+  const us=JSON.parse(localStorage.getItem('sehle_u')||'[]');
+  if(us.find(x=>x.email===em)){toast('Bu e-posta zaten kayıtlı!');return;}
+  const nu={name:n,surname:s,email:em,phone:ph,pass:p};
+  us.push(nu);localStorage.setItem('sehle_u',JSON.stringify(us));
+  user=nu;localStorage.setItem('sehle_cur',JSON.stringify(nu));
+  updateUMenu();closeAuth();toast(`Hoş geldin, ${n}! Galaksiye katıldın 🌌`);
+}
+function doLogout(){user=null;localStorage.removeItem('sehle_cur');updateUMenu();toast('Çıkış yapıldı. 👋');document.getElementById('uDrop').classList.remove('sh');}
+function toggleUMenu(){document.getElementById('uDrop').classList.toggle('sh');}
+function updateUMenu(){
+  const el=document.getElementById('uMenuC');
+  if(user){
+    el.innerHTML=`
+      <div style="padding:10px 16px 6px;font-size:11px;color:var(--mut);">Merhaba, ${user.name}!</div>
+      <hr>
+      <a>👤 Profilim</a><a>📦 Siparişlerim</a><a>📍 Adreslerim</a>
+      <hr>
+      <a onclick="doLogout()" style="color:var(--err);">🚪 Çıkış Yap</a>
+    `;
+  } else {
+    el.innerHTML=`
+      <a onclick="openAuth();document.getElementById('uDrop').classList.remove('sh')">🚀 Giriş Yap</a>
+      <a onclick="openAuth();switchTab('r');document.getElementById('uDrop').classList.remove('sh')">✨ Kayıt Ol</a>
+    `;
+  }
+}
+
+// ── CHECKOUT ──
+function openCheckout(){
+  if(!cart.length){toast('Sepetiniz boş!');return;}
+  coStep=1;document.getElementById('coMod').classList.add('active');renderCo();
+}
+function closeCheckout(){document.getElementById('coMod').classList.remove('active');}
+function renderCo(){
+  const steps=['Adres','Kargo','Ödeme','Özet'];
+  document.getElementById('coSteps').innerHTML=steps.map((s,i)=>`
+    <div class="co-step ${coStep===i+1?'on':''} ${coStep>i+1?'done':''}">
+      <div class="sdot">${coStep>i+1?'✓':i+1}</div>${s}
+    </div>
+  `).join('');
+  const tv=cart.reduce((s,i)=>s+i.price*i.qty,0),cr=29,gr=tv+cr;
+  const contents={
+    1:`<div class="fr"><div class="fg"><label class="fl">Ad</label><input class="fi" value="${user?user.name:''}" placeholder="Ad"></div><div class="fg"><label class="fl">Soyad</label><input class="fi" value="${user?user.surname:''}" placeholder="Soyad"></div></div>
+    <div class="fg"><label class="fl">Telefon</label><input class="fi" value="${user?user.phone||'':''}" placeholder="+90 5XX XXX XX XX"></div>
+    <div class="fg"><label class="fl">Adres</label><textarea class="fi" rows="2" placeholder="Mahalle, sokak, bina no…"></textarea></div>
+    <div class="fr"><div class="fg"><label class="fl">İl</label><input class="fi" placeholder="İstanbul"></div><div class="fg"><label class="fl">İlçe</label><input class="fi" placeholder="Kadıköy"></div></div>
+    <button class="btn-full" onclick="coStep=2;renderCo()">Devam Et →</button>`,
+    2:`<div style="margin-bottom:14px;">${['⚡ Standart Kargo — ₺29 (3-5 gün)','🚀 Hızlı Kargo — ₺59 (1-2 gün)','🌌 Aynı Gün Teslimat — ₺99'].map((o,i)=>`<label style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(220,38,38,.05);border:1px solid rgba(239,68,68,.2);border-radius:10px;cursor:pointer;margin-bottom:8px;font-size:13px;"><input type="radio" name="cargo" ${i===0?'checked':''} style="accent-color:var(--p);"> ${o}</label>`).join('')}</div>
+    <div style="display:flex;gap:8px;"><button class="btn-ot" onclick="coStep=1;renderCo()" style="flex:1;padding:11px;">← Geri</button><button class="btn-full" onclick="coStep=3;renderCo()" style="flex:2;margin-top:0;">Devam Et →</button></div>`,
+    3:`<div class="fg"><label class="fl">Kart Numarası</label><input class="fi" placeholder="1234 5678 9012 3456" maxlength="19"></div>
+    <div class="fr"><div class="fg"><label class="fl">Son Kullanma</label><input class="fi" placeholder="AA/YY" maxlength="5"></div><div class="fg"><label class="fl">CVV</label><input class="fi" placeholder="***" maxlength="3" type="password"></div></div>
+    <div class="fg"><label class="fl">Kart Adı</label><input class="fi" placeholder="AD SOYAD"></div>
+    <div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;">
+      <span style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:7px;padding:6px 10px;font-size:11px;color:#86efac;">🔒 SSL</span>
+      <span style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:7px;padding:6px 10px;font-size:11px;color:#86efac;">💳 3D Secure</span>
+    </div>
+    <div style="display:flex;gap:8px;"><button class="btn-ot" onclick="coStep=2;renderCo()" style="flex:1;padding:11px;">← Geri</button><button class="btn-full" onclick="coStep=4;renderCo()" style="flex:2;margin-top:0;">Devam Et →</button></div>`,
+    4:`<div class="osum">
+      ${cart.map(i=>`<div class="orow"><span>${i.name} (x${i.qty})</span><span>₺${(i.price*i.qty).toLocaleString('tr')}</span></div>`).join('')}
+      <div class="orow"><span>Kargo</span><span>₺${cr}</span></div>
+      <div class="orow"><span>Toplam</span><span style="color:#fff">₺${gr.toLocaleString('tr')}</span></div>
+    </div>
+    <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#86efac;margin-bottom:14px;">✓ Ücretsiz iade &nbsp;|&nbsp; ✓ 2 yıl garanti &nbsp;|&nbsp; ✓ Güvenli ödeme</div>
+    <div style="display:flex;gap:8px;"><button class="btn-ot" onclick="coStep=3;renderCo()" style="flex:1;padding:11px;">← Geri</button><button class="btn-full" onclick="placeOrder()" style="flex:2;margin-top:0;">SİPARİŞ VER 🚀</button></div>`
+  };
+  document.getElementById('coC').innerHTML=contents[coStep];
+}
+function placeOrder(){
+  document.getElementById('coMod').classList.remove('active');
+  cart=[];updateCart();
+  const ov=document.getElementById('sucOv');ov.style.display='flex';ov.classList.add('show');
+  setTimeout(()=>{ov.style.display='none';},3500);
+}
+
+// ── NEWSLETTER ──
+function subNL(){
+  const e=document.getElementById('nlEmail').value.trim();
+  if(!e||!e.includes('@')){toast('Geçerli bir e-posta girin.');return;}
+  toast(`${e} bültene eklendi! 🌌`);document.getElementById('nlEmail').value='';
+}
+
+// ── TOAST ──
+let toastT;
+function toast(m){
+  const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── MODAL BG CLICK ──
+document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('active');}));
+
+// ── INIT ──
+(()=>{
+  renderCats();renderFilts();renderProds();renderTests();renderFeat();
+  const sv=localStorage.getItem('sehle_cur');if(sv){user=JSON.parse(sv);}
+  updateUMenu();
+})();
+</script>
+</body>
+</html>
